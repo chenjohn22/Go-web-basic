@@ -1,43 +1,75 @@
 package router
 
 import (
-	"regexp"
-	logdata "server/packages/log"
+	"bytes"
+	"fmt"
+	"io/ioutil"
+	"server/api"
+	"server/router/middleware"
+	"strings"
+	"time"
 
+	"github.com/CRGao/log"
 	"github.com/gin-gonic/gin"
 )
 
 func ApiRouter() {
 	// 範例
+	router := gin.New()
+	router.Use(loggerHandler)
+	//綁定頁面
+	router.LoadHTMLGlob("./web/view/*")
+	router.Static("/assetPath", "./web/asset")
 
-	//ip檢查
-	//ginEngine.GinEngine.Use(authCheck)
-	//建立商戶
-	// ginEngine.GinEngine.POST("/create/merchant", CreateMerchant)
-	// ginEngine.GinEngine.POST("/update/merchant", UpdateMerchantUri)
+	//Router註冊
+	InitPageRoute(router)
+	InitApiRouter(router)
+	err := router.Run("localhost:8888")
+	if err != nil {
+		panic(err)
+	}
+}
 
-	// transaction := ginEngine.GinEngine.Group("/transaction")
-	// transaction.Use(authCheck)
+func InitApiRouter(router *gin.Engine) {
+	//	全域使用
+	groupApi := router.Group("/api")
+	groupApi.Use(middleware.Cors())
+	// groupApi.Use(middleware.SetLang())
+	//router.GET("/account/setlang", v1.SetLang)
+
+	groupApi.GET("/", api.Crud)
 
 }
 
-func authCheck(context *gin.Context) {
+func InitPageRoute(router *gin.Engine) {
+	//	全域使用
+	router.Use(middleware.Cors())
+	router.GET("/", api.Index)
 
-	var ok bool
-	var err error
+}
 
-	ok, err = regexp.MatchString(`^10\.\d+\.\d+\.\d+$`, context.ClientIP())
-	if err != nil {
-		name := "authCheck regexp MatchString err"
-		logdata.SysErrorLog(map[string]interface{}{
-			"name": name,
-			"ip":   context.ClientIP(),
-		}, err)
-		context.Abort()
-		return
+func loggerHandler(ctx *gin.Context) {
+	// Start timer
+	start := time.Now()
+	path := ctx.Request.URL.Path
+	raw := ctx.Request.URL.RawQuery
+	method := ctx.Request.Method
+	reqBody, _ := ctx.GetRawData()
+	ctx.Request.Body = ioutil.NopCloser(bytes.NewBuffer(reqBody)) //把請求資料再塞回去
+
+	//把換行符號過濾
+	reqBodyStr := strings.Replace(string(reqBody), "\n", "", -1)
+
+	// Process request
+	ctx.Next()
+
+	// Stop timer
+	end := time.Now()
+	latency := end.Sub(start)
+	statusCode := ctx.Writer.Status()
+	clientIP := ctx.ClientIP()
+	if raw != "" {
+		path = path + "?" + raw
 	}
-
-	if ok {
-		return
-	}
+	log.Info(fmt.Sprintf("METHOD:%s | PATH:%s | BODY:%s | CODE:%d | IP:%s | TIME:%s", method, path, reqBodyStr, statusCode, clientIP, latency))
 }
