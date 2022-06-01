@@ -6,7 +6,9 @@ import (
 	"io/ioutil"
 	"os"
 	"server/api"
+	"server/packages/socket"
 	"server/router/middleware"
+	handle "server/socket"
 	"strings"
 	"time"
 
@@ -21,6 +23,13 @@ func Start() {
 	//綁定頁面
 	router.LoadHTMLGlob("./web/view/*")
 	router.Static("/assetPath", "./web/asset")
+
+	//綁定ws
+	webSocket := socket.NewServer()
+	webSocket.RegFunc("websocket", handle.HandleFunc())
+
+	webSocket.Begin()
+	router.GET("/ws", webSocket.Handle)
 
 	//Router註冊
 	InitPageRoute(router)
