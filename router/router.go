@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"server/api"
 	"server/router/middleware"
 	"strings"
@@ -13,7 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func ApiRouter() {
+func Start() {
 	// 範例
 	router := gin.New()
 	router.Use(loggerHandler)
@@ -24,7 +25,7 @@ func ApiRouter() {
 	//Router註冊
 	InitPageRoute(router)
 	InitApiRouter(router)
-	err := router.Run("localhost:8888")
+	err := router.Run(os.Getenv("socketIP") + ":" + os.Getenv("port"))
 	if err != nil {
 		panic(err)
 	}
@@ -43,7 +44,7 @@ func InitApiRouter(router *gin.Engine) {
 
 func InitPageRoute(router *gin.Engine) {
 	//	全域使用
-	router.Use(middleware.Cors())
+	//router.Use(middleware.Cors())
 	router.GET("/", api.Index)
 
 }

@@ -1,0 +1,46 @@
+version: "3.7"
+services:
+
+  web:
+    build:
+      context: ./
+      dockerfile: ./build/Dockerfile
+      args:
+        version: latest
+    image: web
+    container_name: web
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1024k"
+        max-file: "10"
+    ports:
+      - "8000:80"
+    environment:
+      - env_type=dev
+      - env_host=0.0.0.0
+      - env_port=80
+      - env_db_host=192.168.9.22
+      - env_db_port=3306
+      - env_db_account=root
+      - env_db_password=123456
+      - env_db_name=bitwin
+      - env_db_min_connection=10
+      - env_db_max_connection=20
+      - env_charset=utf8mb4
+      - env_redis_host=192.168.9.22
+      - env_redis_port=6379
+      - env_redis_password=
+      - env_select_db=1
+      - env_poolsize=10
+      - env_socket_room=1
+      - env_socket_port=8889
+      - env_socket_key=1
+      - env_socket_timeout=10
+      - env_socket_readbuffer=10
+      - env_socket_writebuffer=10
+      - env_socket_autoclose=10
+
+#   tty: true
+#    command: sh

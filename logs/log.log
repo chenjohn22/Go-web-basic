@@ -1,0 +1,1 @@
+2022/05/31 11:27:27.244 [INFO] router.go:75 loggerHandler METHOD:GET | PATH:/ | BODY: | CODE:200 | IP:127.0.0.1 | TIME:36.338µs

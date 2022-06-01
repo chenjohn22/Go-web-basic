@@ -1,0 +1,2 @@
+2022/05/31 11:25:57.949 [INFO] router.go:75 loggerHandler METHOD:GET | PATH:/ | BODY: | CODE:200 | IP:127.0.0.1 | TIME:187.138µs
+2022/05/31 11:25:58.071 [INFO] router.go:75 loggerHandler METHOD:GET | PATH:/favicon.ico | BODY: | CODE:404 | IP:127.0.0.1 | TIME:1.769µs

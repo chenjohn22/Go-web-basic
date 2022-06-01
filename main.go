@@ -2,29 +2,68 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
-	"log"
+	logs "log"
 	"os"
-	db "server/packages/database"
+	"os/signal"
 	"server/packages/ginEngine"
-	"server/packages/redis"
 	"server/router"
+	"syscall"
 	"time"
+
+	"github.com/CRGao/log"
 )
 
 func main() {
 
-	timeUnix := time.Now().UnixNano() / int64(time.Millisecond)
-	log.Printf("main timeUnix : [%d] ", timeUnix)
+	//timeUnix := time.Now().UnixNano() / int64(time.Millisecond)
 
 	loadEnv()
+	//log 初始化
+	conf := log.LogConfig{
+		Level:      os.Getenv("version"),
+		FileName:   "./logs/log.log",
+		HasConsole: true,
+		Color:      true,
+		Json:       true,
+		MaxSize:    20,
+		MaxAge:     20,
+		DateSlice:  "m",
+		Format:     "%{time:2006/01/02 15:04:05.000} [%{level:.4s}] %{shortfile} %{shortfunc} %{message}",
+	}
+	log.InitByConfigStruct(&conf)
 	ginEngine.GinInit()
-	db.NewConnection()
-	redis.NewRedisConn()
+	//db.NewConnection()
+	//redis.NewRedisConn()
+	//migrate
+	//go migrate.Server.Run()
 
-	router.ApiRouter()
-	ginEngine.GinEngine.Run(os.Getenv("port"))
+	// router.ApiRouter()
+	// ginEngine.GinEngine.Run(os.Getenv("port"))
+	go router.Start()
 
+	//crontab
+	// go crontab.Start()
+
+	//優雅的結束
+	signalChan := make(chan os.Signal)
+	signal.Notify(signalChan, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGUSR1, syscall.SIGUSR2)
+	select {
+	case s := <-signalChan:
+		switch s {
+		case syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT:
+			time.Sleep(10 * time.Second)
+			fmt.Println("退出")
+		case syscall.SIGUSR1:
+			fmt.Println("usr1")
+		case syscall.SIGUSR2:
+			fmt.Println("usr2")
+		default:
+			fmt.Println("other")
+		}
+		fmt.Println("程式獲得訊號：", s)
+	}
 }
 
 func loadEnv() {
@@ -50,6 +89,6 @@ func loadEnv() {
 	}
 
 	//os.Setenv("url", "http://localhost")
-	log.Printf("goServerApiPort : %+v", os.Getenv("port"))
-	log.Printf("version : %+v", os.Getenv("version"))
+	logs.Printf("goServerApiPort : %+v", os.Getenv("port"))
+	logs.Printf("version : %+v", os.Getenv("version"))
 }

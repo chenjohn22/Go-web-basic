@@ -48,7 +48,7 @@ type RegFunc struct {
 
 func NewServer() *Server {
 	SocketServer = new(Server)
-	timeout, _ := strconv.Atoi(os.Getenv("socketTimeOute"))
+	timeout, _ := strconv.Atoi(os.Getenv("socketTimeOut"))
 	readBuffer, _ := strconv.Atoi(os.Getenv("socketReadBuffer"))
 	writeBuffer, _ := strconv.Atoi(os.Getenv("socketWriteBuffer"))
 	autoClose, _ := strconv.Atoi(os.Getenv("socketAutoClose"))
